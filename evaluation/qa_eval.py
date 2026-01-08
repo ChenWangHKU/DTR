@@ -48,7 +48,7 @@ def main():
         data = data[:args.num_samples]
 
     em_scores, f1_scores = [], []
-    
+    used_retrieval = 0
     for example in data:
         gold_answers = example["expected_answer"]
         # Ensure gold_answers is a list
@@ -62,16 +62,21 @@ def main():
         em_scores.append(ems_score)
         f1_scores.append(f1)
 
+        if example["used_retrieval"]:
+            used_retrieval += 1
+
 
     
     avg_ems = np.mean(em_scores)
     avg_f1 = np.mean(f1_scores)
+    retrieval_rate = used_retrieval / len(data)
 
 
     print("==================== Evaluation Result ====================")
     print(">>>> File: {}".format(args.eval_file))
     print(">>>> EM: {:.5f}".format(avg_ems))
     print(">>>> F1: {:.5f}".format(avg_f1))
+    print(">>>> Retrieval Rate: {:.5f}".format(retrieval_rate))
     print("===========================================================")
      
 
