@@ -8,10 +8,6 @@ import faiss
 from concurrent.futures import ThreadPoolExecutor
 import argparse
 
-from llama_index.core import VectorStoreIndex, Settings, StorageContext
-from llama_index.core.storage.docstore import SimpleDocumentStore
-from llama_index.core.schema import TextNode
-from llama_index.vector_stores.faiss import FaissVectorStore
 from sentence_transformers import SentenceTransformer
 
 
@@ -188,65 +184,6 @@ class Ingestion:
         faiss.write_index(index, os.path.join(self.root, "faiss_index_emb"))
         
         print(f'Saved index to {os.path.join(self.root, "faiss_index_emb")}')
-        
-        
-        
-    
-    # Index the embeddings and documents by FAISS and save to disk ahead of time
-    def indexing_faiss(self, corpus: List[Dict[str, Any]]) -> None:
-        print("Building FAISS index...")
-        # Load embeddings from disk
-        embeddings = np.load(os.path.join(self.root, "corpus_embeddings.npy"))
-        print(f"Loaded embeddings shape: {embeddings.shape}")
-        
-        # Normalize embeddings for Inner Product (IP)
-        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
-        embeddings = embeddings / np.where(norms > 0, norms, 1)  # Avoid division by zero
-        
-        # Global settings of embbeding model (to prevent OpenAI API calls)
-        Settings.embed_model = self.embed
-        
-        # Build FAISS index
-        """ This is a flat (brute-force) index, which is slow for large corpora. """
-        dim = embeddings.shape[1]
-        faiss_index = faiss.IndexFlatIP(dim)
-        vector_store = FaissVectorStore(faiss_index=faiss_index)
-        
-        # Create storage context with vector store AND document store
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store,
-            docstore=SimpleDocumentStore(),  # Handles text storage
-        )
-
-        # Create nodes from corpus and embeddings
-        nodes = []
-        for entry, vector in tqdm(zip(corpus, embeddings), desc="Creating nodes"):
-            if "sentences" in entry and entry["sentences"]:
-                raw_text = " ".join(entry["sentences"])
-            else:
-                raw_text = f"Document with id {entry['id']}"
-            
-            # Create TextNode with text, metadata, and embedding
-            node = TextNode(
-                text=raw_text,
-                metadata={"id": entry["id"], "title": entry["title"]},
-                embedding=vector.tolist()
-            )
-            nodes.append(node)
-        
-        # Initialize index with nodes (handles storage to both vector store and docstore)
-        index = VectorStoreIndex(
-            nodes=nodes,
-            storage_context=storage_context,
-            show_progress=False
-        )
-        self.index = index
-
-        # Persist entire storage context (saves both FAISS index and documents)
-        index.storage_context.persist(os.path.join(self.root, "faiss_index"))
-        print(f"Index saved to {os.path.join(self.root, 'faiss_index')}")
-
-
 
 
 
