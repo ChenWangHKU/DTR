@@ -1,7 +1,13 @@
 """
-    Evaluate the adaptive RAG model on question answering datasets.
-    (1) Generating answers directly
-    (2) Generating answers with retrieved documents
+    DTR:
+    Decide Then Retrieve: A Training-Free Framework with Uncertainty-Guided Triggering and Dual-Path Retrieval
+    arXiv: https://arxiv.org/abs/2601.03908
+    GitHub: https://github.com/ChenWangHKU/DTR
+    
+    Written by Wang CHEN
+    Baidu Inc
+    Department of Civil Engineering, The University of Hong Kong (HKU)
+    wchen22@connect.hku.hk
 """
 
 import json
@@ -249,8 +255,7 @@ def eval():
 
     # Save results
     os.makedirs(args.result_root, exist_ok=True)
-    RAG_num = args.topk if args.RAG else 0
-    file_name = f"gene_{args.data_name}_num{len(results)}_RAG{RAG_num}_" + args.model_name_or_path.split('/')[-1] + ".json"
+    file_name = f"gene_{args.data_name}_num{len(results)}_RAG{args.topk}_" + args.model_name_or_path.split('/')[-1] + ".json"
     
     with open(os.path.join(args.result_root, file_name), "w", encoding="utf-8") as f:
         json.dump(results, f, indent=4, ensure_ascii=False)
