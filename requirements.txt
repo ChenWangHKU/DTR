@@ -9,4 +9,4 @@ torch==2.8.0
 tqdm==4.67.1
 transformers==4.57.1
 utils==1.0.2
-vllm==0.11.0                                                                                                                 "job-fp3urf4fxoxr-work" 14:22 08-Jan-26
+vllm==0.11.0

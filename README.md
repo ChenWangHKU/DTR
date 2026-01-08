@@ -2,26 +2,24 @@
 
 This repository provides the official implementation of **DTR**, a training-free retrieval-augmented generation (RAG) framework that dynamically decides **when to retrieve external documents** based on model uncertainty and **how to retrieve more relevant documents** based on dual-path retrieval with adaptive information selection (**DPR-AIS**). [paper](http://arxiv.org/abs/2601.03908)
 
----
+
 
 ## 1. Introduction
 
 The overall framework of DTR is illustrated below.
 
 <p align="center">
-  <img src="assets/framework.png" alt="Overview of the proposed decide then retrieve (DTR) framework. (a) DTR can adaptively determine whether to retrieve and how to select external information. (b) DTR guides whether to activate retrievals based on the uncertainty score. (c) DTR adaptively selects effective information based on the dual-path retrieval for the final generation." width="700">
+  <img src="assets/framework.png" alt="" width="700">
 </p>
 
----
+**Figure 1:** Overview of the proposed decide then retrieve (DTR) framework. (a) DTR can adaptively determine whether to retrieve and how to select external information. (b) DTR guides whether to activate retrievals based on the uncertainty score. (c) DTR adaptively selects effective information based on the dual-path retrieval for the final generation.
+
 
 ## 2. Environment
 
 Create a clean conda environment and install dependencies:
 
 ```bash
-mkdir DTR
-cd DTR
-
 conda create -n DTR python=3.10
 conda activate DTR
 
@@ -31,7 +29,7 @@ cd DTR
 pip install -r requirements.txt
 ````
 
----
+
 
 ## 3. Datasets
 
@@ -43,11 +41,11 @@ Create a data directory:
 mkdir data
 ```
 
-Download all datasets used in this paper and place them under `data/` through [BaiduDrive](https://pan.baidu.com/s/1LGoEA-fR-L5NZAcq8uhCrA)(Password: 95rn) or [OneDrive](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/wchen22_connect_hku_hk/IgB_j-0yHQ-QRovT3wXmXFylAT4YNllR8xWyH4zej2SPrKE?e=ILDr7j)
+Download all datasets used in this paper and place them under `data/` through [BaiduDrive](https://pan.baidu.com/s/1LGoEA-fR-L5NZAcq8uhCrA)(**Password:** `95rn`) or [OneDrive](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/wchen22_connect_hku_hk/IgB_j-0yHQ-QRovT3wXmXFylAT4YNllR8xWyH4zej2SPrKE?e=ILDr7j)
 
 Ensure that the directory structure matches the expected format used by the data loader.
 
----
+
 
 ### 3.2 Process data (offline embedding and indexing)
 
@@ -73,7 +71,7 @@ python -m retriever.ingestion --data_name hotpotqa --emb_type e5
 
 > If you encounter a data path error, revise the dataset paths in `dataset/load_data.py`.
 
----
+
 
 ## 4. Run DTR
 
@@ -89,15 +87,21 @@ python main.py \
   --index_GPUID 2 \
   --gpu_size 2 \
   --use_vLLM True \
-  --retriever bge
+  --emb_type bge
 ```
 
 > The generated outputs will be saved under `--result_root`.
-> We use vLLM to accelrate inference.
-> `--uncertainty_threshold 0.` means all queries require retrievals
-> `--RAG_type adaptive` means using the proposed DPR-AIS mechanism (you may use `standard` to adopt the traditional RAG mechanism)
 
----
+> We use **vLLM** to accelrate inference.
+
+> `--uncertainty_threshold 0.` means all queries require retrievals (Traditional RAG).
+
+> `--RAG_type adaptive` means using the proposed DPR-AIS mechanism (you may use `standard` to adopt the traditional RAG mechanism).
+
+> `--index_GPUID 2` means we load index onto GPU 2 to accelerate the retrieval process.
+
+> `--gpu_size 2` means we use **TWO GPUs** to generate answers.
+
 
 ## 5. Evaluate Results
 
@@ -109,7 +113,12 @@ python -m evaluation.qa_eval \
   --result_root results \
 ```
 
----
+
+
+## Acknowledgement
+
+This repository draws inspiration from [KiRAG](https://github.com/jyfang6/kirag/tree/main) and [DPR](https://github.com/facebookresearch/DPR).
+
 
 ## Citation
 
