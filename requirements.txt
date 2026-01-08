@@ -1,7 +1,7 @@
 faiss_gpu==1.7.2
 llama_index==0.14.12
 modelscope==1.31.0
-numpy==2.4.0
+numpy==1.26.0
 pandas==2.3.3
 regex==2024.11.6
 sentence_transformers==4.1.0
