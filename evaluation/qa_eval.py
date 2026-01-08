@@ -5,7 +5,7 @@ import numpy as np
 from transformers import logging as hf_logging
 hf_logging.set_verbosity_error()
 
-from utils.utils import load_json
+from dataset.load_data import load_json
 from evaluation.metrics import ems, f1_score
 
 
@@ -48,8 +48,6 @@ def main():
         data = data[:args.num_samples]
 
     em_scores, f1_scores = [], []
-    topk = []
-
     
     for example in data:
         gold_answer = example["expected_answer"]
@@ -69,26 +67,15 @@ def main():
         f1_scores.append(f1)
 
 
-        # Record how many documents have been retrieved
-        if "retrieval_ids" in example:
-            topk.append(len(example["retrieval_ids"]))
     
     avg_ems = np.mean(em_scores)
     avg_f1 = np.mean(f1_scores)
-    avg_topk = np.mean(topk)
-    avg_topk_pos = np.mean([x for x in topk if x > 0])
-    num_top0 = sum([1 for x in topk if x == 0])
 
 
     print("==================== Evaluation Result ====================")
     print(">>>> File: {}".format(args.eval_file))
     print(">>>> EM: {:.5f}".format(avg_ems))
     print(">>>> F1: {:.5f}".format(avg_f1))
-    print("---------------------------------")
-    print(">>>> Retrieval Info:")
-    print(">>>> Average number of retrieved documents (including no retrieval): {:.3f}".format(avg_topk))
-    print(">>>> Average number of retrieved documents (excluding no retrieval): {:.3f}".format(avg_topk_pos))
-    print(">>>> Number of questions with no retrieved documents: {}".format(num_top0))
     print("===========================================================")
      
 
