@@ -1,4 +1,4 @@
-
+from statistics import mean
 import string
 import regex
 from collections import Counter
@@ -22,14 +22,11 @@ def normalize_answer(s):
 
     return white_space_fix(remove_articles(remove_punc(lower(s))))
 
-
 def exact_match_score(prediction, ground_truth):
     return normalize_answer(prediction) == normalize_answer(ground_truth)
 
-
 def ems(prediction, ground_truth):
     return exact_match_score(prediction, ground_truth)
-
 
 # Taken from HotPotQA Evaluation Script: https://raw.githubusercontent.com/hotpotqa/hotpot/master/hotpot_evaluate_v1.py
 def f1_score(prediction, ground_truth):

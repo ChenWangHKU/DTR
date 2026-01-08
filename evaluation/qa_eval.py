@@ -50,19 +50,15 @@ def main():
     em_scores, f1_scores = [], []
     
     for example in data:
-        gold_answer = example["expected_answer"]
-        gold_answer = [gold_answer] if isinstance(gold_answer, str) else gold_answer
-        for i in range(len(gold_answer)):
-            if isinstance(gold_answer[i], list):
-                gold_answer[i] = gold_answer[i][0]
+        gold_answers = example["expected_answer"]
+        # Ensure gold_answers is a list
+        if isinstance(gold_answers, str):
+            gold_answers = [gold_answers]
         
-        pred_answer = example["model_answer"]
-        if isinstance(pred_answer, list):
-            pred_answer = pred_answer[0]
-        
-        
-        ems_score = ems(pred_answer, gold_answer)
-        f1 = f1_score(pred_answer, gold_answer[0])[0]
+        model_answer = example["model_answer"]
+
+        ems_score = max(ems(model_answer[0], ga) for ga in gold_answers)
+        f1 = max(f1_score(model_answer[0], ga)[0] for ga in gold_answers)
         em_scores.append(ems_score)
         f1_scores.append(f1)
 
