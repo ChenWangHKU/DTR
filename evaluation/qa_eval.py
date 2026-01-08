@@ -1,0 +1,99 @@
+import logging
+import argparse
+import numpy as np 
+
+from transformers import logging as hf_logging
+hf_logging.set_verbosity_error()
+
+from utils.utils import load_json
+from evaluation.metrics import ems, f1_score
+
+
+
+logger = logging.getLogger(__file__)
+
+def setup_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--eval_file',
+        type=str,
+        default='results_hotpotqa_num7404_top2_Qwen2.5-7B-Instruct.json',
+        help='The name of the input file.'
+    )
+    parser.add_argument(
+        '--result_root',
+        type=str,
+        default='../../results',
+        help='The root directory for generated results.'
+    )
+    parser.add_argument(
+        '--num_samples',
+        type=int,
+        default=-1,
+        help='Number of samples to use in evaluation. -1 means all'
+    )
+    args = parser.parse_args()
+    return args
+
+    
+
+
+def main():
+    args = setup_args()
+    file_path = args.eval_file
+    print(f"loading data: {file_path}")
+    data = load_json(file_path)
+    
+    if args.num_samples > 0:
+        data = data[:args.num_samples]
+
+    em_scores, f1_scores = [], []
+    topk = []
+
+    
+    for example in data:
+        gold_answer = example["expected_answer"]
+        gold_answer = [gold_answer] if isinstance(gold_answer, str) else gold_answer
+        for i in range(len(gold_answer)):
+            if isinstance(gold_answer[i], list):
+                gold_answer[i] = gold_answer[i][0]
+        
+        pred_answer = example["model_answer"]
+        if isinstance(pred_answer, list):
+            pred_answer = pred_answer[0]
+        
+        
+        ems_score = ems(pred_answer, gold_answer)
+        f1 = f1_score(pred_answer, gold_answer[0])[0]
+        em_scores.append(ems_score)
+        f1_scores.append(f1)
+
+
+        # Record how many documents have been retrieved
+        if "retrieval_ids" in example:
+            topk.append(len(example["retrieval_ids"]))
+    
+    avg_ems = np.mean(em_scores)
+    avg_f1 = np.mean(f1_scores)
+    avg_topk = np.mean(topk)
+    avg_topk_pos = np.mean([x for x in topk if x > 0])
+    num_top0 = sum([1 for x in topk if x == 0])
+
+
+    print("==================== Evaluation Result ====================")
+    print(">>>> File: {}".format(args.eval_file))
+    print(">>>> EM: {:.5f}".format(avg_ems))
+    print(">>>> F1: {:.5f}".format(avg_f1))
+    print("---------------------------------")
+    print(">>>> Retrieval Info:")
+    print(">>>> Average number of retrieved documents (including no retrieval): {:.3f}".format(avg_topk))
+    print(">>>> Average number of retrieved documents (excluding no retrieval): {:.3f}".format(avg_topk_pos))
+    print(">>>> Number of questions with no retrieved documents: {}".format(num_top0))
+    print("===========================================================")
+     
+
+     
+
+if __name__ == "__main__":
+    
+    main()
